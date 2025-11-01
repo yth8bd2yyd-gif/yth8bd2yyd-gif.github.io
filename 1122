@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>温暖的关心</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100vh;
+            background-image: url('https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/1fa8b1a502ea4ce7ba604c3b4ae165f3.jpeg~tplv-a9rns2rl98-image.jpeg?rcl=202510312037327AA612684AA93AA6005A&rk3s=8e244e95&rrcfp=e9668010&x-expires=1762519053&x-signature=SFatDGm3LtMdyQ8A4lLGtSd%2B7PE%3D');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .tip-box {
+            position: absolute;
+            padding: 10px 8px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            font-family: "-apple-system", "BlinkMacSystemFont", "微软雅黑", sans-serif;
+            font-size: 14px;
+            color: #333;
+            transition: opacity 1s ease, transform 1s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 200px;
+            height: 52px;
+            background-color: rgba(255,255,255,0.92);
+        }
+        .tip-box.heart-fade {
+            opacity: 0;
+            transform: translateY(-30px) scale(0.8);
+            pointer-events: none;
+        }
+        .heart-trail {
+            position: absolute;
+            z-index: 999;
+            font-size: 16px;
+            opacity: 1;
+            transition: all 1.5s ease-out;
+            pointer-events: none;
+        }
+        .info {
+            position: fixed;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #2d2d2d;
+            font-size: 12px;
+            background: rgba(255,255,255,0.92);
+            padding: 6px 14px;
+            border-radius: 18px;
+            z-index: 2000;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+        }
+        .music-control {
+            position: fixed;
+            top: 14px;
+            right: 14px;
+            width: 34px;
+            height: 34px;
+            background: rgba(255,255,255,0.92);
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .music-control svg {
+            width: 17px;
+            height: 17px;
+            stroke: #444;
+        }
+        @media (orientation: landscape) {
+            .tip-box {
+                width: 170px;
+                height: 48px;
+                font-size: 12px;
+                padding: 8px 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="music-control" id="musicControl">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+            <rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>
+        </svg>
+    </div>
+    
+    <div class="info">按空格键/点击关闭所有提示 | 点击右上角控制音乐</div>
+
+    <audio id="bgMusic" loop>
+        <source src="https://3wt.music.zhangtiandi.cn/2025/10-31/489d5c7b5fdc4714904eefc33ff2286d3wcn791181.mp3" type="audio/mpeg">
+        您的浏览器不支持音频播放
+     </audio>
+
+    <script>
+        // 温馨关怀话语
+        const tips = [
+            "要记得按时吃饭哦，我会惦记的",
+            "累了就歇会儿，别让自己太辛苦",
+            "你笑起来特别好看，要多笑笑呀",
+            "适当的压力是动力，但别太勉强自己",
+            "多喝水对身体好，记得照顾好自己",
+            "天气变化记得添减衣物，别感冒了",
+            "工作的时候也要记得休息，别太累",
+            "不开心的时候可以和我聊聊，我都在",
+            "你身上有很多闪光点，要相信自己",
+            "早睡早起对身体好，要爱惜自己",
+            "你的一些小习惯，我觉得很可爱",
+            "遇到困难时别着急，慢慢来就好",
+            "保持好心情，事情会顺利很多的",
+            "今天也要记得好好吃饭，照顾自己",
+            "你真诚的笑容，能让人心情变好",
+            "做自己就很好，不用太在意别人",
+            "适当的独处也很好，但要记得联系",
+            "工作间隙起来活动一下，对身体好",
+            "每个人节奏不同，按自己的步调来",
+            "下雨记得带伞，我可不想你淋湿",
+            "你温和的声音，让人感到很安心",
+            "有压力时深呼吸，我会支持你的",
+            "你专注的样子，真的很让人欣赏",
+            "多吃水果补充维生素，对身体好",
+            "适当的情绪表达是健康的，不用憋着",
+            "走路小心点，注意脚下安全",
+            "保持积极很重要，但累了可以靠着我",
+            "累了就找个地方坐会儿，我陪你",
+            "你认真的态度，是很棒的品质",
+            "对未来保持乐观，我会陪着你",
+            "天冷时喝点热饮，心里会暖暖的",
+            "微笑能让自己开心，也能感染别人",
+            "你有很多独特的地方，我很喜欢",
+            "适当运动对身体好，我们可以一起",
+            "坚持自己的选择，我会支持你的",
+            "犯错是学习的机会，不用太自责",
+            "你明亮的眼神，很有感染力",
+            "工作之余放松心情，别太紧绷",
+            "你的善良品质，很难得",
+            "天气转凉记得加衣服，我会担心",
+            "你温柔的话语，总能安慰到我",
+            "适当休息是为了走更远，我懂你",
+            "你是很特别的人，要相信自己",
+            "完成小事也值得庆祝，慢慢来",
+            "你的细心体贴，让人很感动",
+            "健康比什么都重要，要照顾好自己",
+            "你的包容心，是很美好的品质",
+            "早餐要吃好，一天才有精神",
+            "乐观的心态能克服困难，你可以的",
+            "给父母打个电话，他们很想念你",
+            "你温和的语气，能让心情平静",
+            "休息是为了更好前进，我理解",
+            "你的单纯善良，值得被珍惜",
+            "一切都会慢慢好起来的，我相信",
+            "生活或许平凡，但藏着很多小确幸",
+            "营养均衡很重要，要爱惜身体",
+            "你的微笑能传递正能量",
+            "黑暗过后是黎明，我会陪着你",
+            "你的每个表情，我都在意",
+            "保护眼睛很重要，别太疲劳",
+            "温柔是种力量，你拥有这种力量",
+            "困难是暂时的，我们一起面对",
+            "善良让世界更美好，谢谢你存在",
+            "适当活动有益健康，要动起来",
+            "你的单纯很美好，要保持下去",
+            "独处也是种享受，但记得我在",
+            "努力会有回报，我看得到你的付出",
+            "保暖很重要，不想你着凉",
+            "你的存在本身就是一种美好",
+            "做自己就好，我喜欢真实的你",
+            "你的一些小习惯，我觉得很特别",
+            "多喝水有益健康，要记得喝",
+            "你的坚强勇敢，让人敬佩",
+            "从错误中学习，你会越来越好的",
+            "你的笑容很有感染力，能照亮心情",
+            "按时吃饭很重要，胃会感谢你的",
+            "你的温柔体贴，让人感到安心",
+            "适当放松有必要，别太紧绷",
+            "有梦想是好事，我会为你加油",
+            "水果富含维生素，要多吃哦",
+            "你是个很有价值的人，要自信",
+            "挑战让人成长，但量力而行",
+            "善良是种选择，你选择了善良",
+            "微笑让人愉悦，你笑起来真好看",
+            "你的单纯需要被保护，我会的",
+            "未来充满可能，我们一起期待",
+            "付出会有收获，你的努力我知道",
+            "照顾好自己，这样我才能放心",
+            "温柔是种美德，你拥有这种美德",
+            "别纠结过去，未来还有很多可能",
+            "你的选择值得尊重，我支持你",
+            "健康饮食重要，要对自己好点",
+            "你是个很特别的人，我很珍惜",
+            "支持很重要，我会一直支持你",
+            "保持微笑，你笑起来最好看",
+            "你的单纯很美好，要保持下去",
+            "勇敢面对，但不用一个人扛",
+            "努力会被看见，我一直看着呢",
+            "注意身体健康，这样我才能安心",
+            "温柔的力量，你拥有这种力量",
+            "别太劳累，适当休息很重要",
+            "尊重你的选择，因为是你",
+            "我想告诉你，我想你了",
+            "存在即美好，谢谢你出现在我生命里",
+            "不用害怕，有我在你身边",
+            "今天天气不错，心情也要好哦",
+            "记得微笑面对，我会陪着你",
+            "保持心情愉快，你快乐所以我快乐",
+            "注意劳逸结合，别让自己太累",
+            "照顾好自己身体，这样我才能放心",
+            "相信自己的能力，你比想象中优秀",
+            "每一天都是新的开始，我们一起加油",
+            "小小的进步也值得肯定，你真棒",
+            "别给自己太大压力，慢慢来就好",
+            "适当放松很重要，要懂得休息",
+            "你的快乐对我很重要，要开心哦",
+            "记得你并不孤单，我一直在关心你",
+            "你的感受很重要，要好好照顾自己",
+            "无论怎样，我都会在这里支持你",
+            "你的幸福是我最在意的事情",
+            "要相信，有人真的很在乎你",
+            "你的存在让我的世界更美好",
+            "别太勉强，你的感受最重要",
+            "我会一直记得关心你的点点滴滴",
+            "你值得被好好对待，包括被自己",
+            "无论何时，你都不是一个人",
+            "你的幸福，是我最真诚的祝愿",
+            "要记得，你永远都被关心着",
+            "你的快乐，是我最想看到的",
+            "别太辛苦，你的健康最重要",
+            "我会一直记得，要好好关心你",
+            "你的一切，都有人默默在意",
+            "要相信，你始终被温柔对待",
+            "无论晴雨，我的关心都不会变",
+            "你的每个日子，都有人惦记",
+            "要好好生活，因为你在被珍惜",
+            "别怀疑，你始终被深深在乎着"
+        ];
+
+        // 30种温暖的背景色
+        const bgColors = [
+            'rgba(255,182,193,0.92)', 'rgba(135,206,235,0.92)', 'rgba(173,216,230,0.92)',
+            'rgba(176,196,222,0.92)', 'rgba(176,224,230,0.92)', 'rgba(224,255,255,0.92)',
+            'rgba(240,248,255,0.92)', 'rgba(240,255,255,0.92)', 'rgba(144,238,144,0.92)',
+            'rgba(230,230,250,0.92)', 'rgba(255,255,224,0.92)', 'rgba(221,160,221,0.92)',
+            'rgba(255,127,80,0.92)', 'rgba(255,228,196,0.92)', 'rgba(127,255,212,0.92)',
+            'rgba(255,228,225,0.92)', 'rgba(240,255,240,0.92)', 'rgba(255,240,245,0.92)',
+            'rgba(253,245,230,0.92)', 'rgba(204,255,204,0.92)', 'rgba(204,204,255,0.92)',
+            'rgba(255,204,204,0.92)', 'rgba(204,255,255,0.92)', 'rgba(255,255,204,0.92)',
+            'rgba(255,204,255,0.92)', 'rgba(204,255,204,0.92)', 'rgba(255,221,173,0.92)',
+            'rgba(173,221,255,0.92)', 'rgba(221,173,255,0.92)', 'rgba(255,173,204,0.92)'
+        ];
+
+        const tipElements = [];
+        const bgMusic = document.getElementById('bgMusic');
+        const musicControl = document.getElementById('musicControl');
+        let isPlaying = false;
+        let currentTipIndex = 0;
+        const MAX_TIP_COUNT = 80;
+        const TIP_LIFETIME = 20000;
+        const BOTTOM_TIP_LIFETIME = 15000;
+        const BOTTOM_THRESHOLD = 120;
+        const CREATE_INTERVAL = 1000;
+        const SIDE_MARGIN = 15;
+        const AVOID_OVERLAP_DISTANCE = 60;
+
+        // 音乐控制
+        function fadeInMusic() {
+            let volume = 0;
+            bgMusic.volume = 0;
+            const fadeInterval = setInterval(() => {
+                if (volume < 1) {
+                    volume += 0.1;
+                    bgMusic.volume = volume;
+                } else clearInterval(fadeInterval);
+            }, 100);
+        }
+
+        function fadeOutMusic() {
+            let volume = bgMusic.volume;
+            const fadeInterval = setInterval(() => {
+                if (volume > 0) {
+                    volume -= 0.1;
+                    bgMusic.volume = volume;
+                } else {
+                    clearInterval(fadeInterval);
+                    bgMusic.pause();
+                    bgMusic.currentTime = 0;
+                }
+            }, 100);
+        }
+
+        function toggleMusic() {
+            if (isPlaying) {
+                fadeOutMusic();
+                musicControl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke="#444"><path d="M9 18V6l12 6z"></path></svg>';
+            } else {
+                bgMusic.play().then(() => {
+                    fadeInMusic();
+                    musicControl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke="#444"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>';
+                }).catch(() => console.log("需点击页面后播放音乐"));
+            }
+            isPlaying = !isPlaying;
+        }
+        musicControl.addEventListener('click', toggleMusic);
+
+        // 页面加载与用户交互
+        window.addEventListener('load', () => {
+            bgMusic.play().catch(() => {
+                musicControl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke="#ff6b6b"><path d="M9 18V6l12 6z"></path></svg>';
+            });
+        });
+        document.addEventListener('click', () => {
+            if (!isPlaying) {
+                bgMusic.play().then(() => {
+                    fadeInMusic();
+                    isPlaying = true;
+                    musicControl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke="#444"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>';
+                }).catch(() => {});
+            }
+        }, { once: true });
+
+        // 重叠检测
+        function isOverlapping(newX, newY, newWidth, newHeight) {
+            return tipElements.some(tip => {
+                const tipRect = tip.getBoundingClientRect();
+                const centerX1 = newX + newWidth / 2;
+                const centerY1 = newY + newHeight / 2;
+                const centerX2 = tipRect.left + tipRect.width / 2;
+                const centerY2 = tipRect.top + tipRect.height / 2;
+                const distance = Math.sqrt(Math.pow(centerX1 - centerX2, 2) + Math.pow(centerY1 - centerY2, 2));
+                return distance < AVOID_OVERLAP_DISTANCE;
+            });
+        }
+
+        // 位置生成算法
+        function getNonOverlappingPosition(tipWidth, tipHeight) {
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight;
+            const maxX = screenWidth - tipWidth - SIDE_MARGIN;
+            const minX = SIDE_MARGIN;
+            const maxY = screenHeight - tipHeight - SIDE_MARGIN - 80;
+            const minY = SIDE_MARGIN + 40;
+            
+            const centerX = (minX + maxX) / 2;
+            const centerY = (minY + maxY) / 2;
+            const maxRadius = Math.min(maxX - centerX, maxY - centerY);
+            const angleStep = Math.PI / 8;
+            const radiusStep = maxRadius / 10;
+            
+            let radius = 0;
+            let angle = 0;
+            let attempts = 0;
+            
+            while (radius <= maxRadius && attempts < 200) {
+                const x = Math.floor(centerX + radius * Math.cos(angle));
+                const y = Math.floor(centerY + radius * Math.sin(angle));
+                
+                if (x >= minX && x <= maxX && y >= minY && y <= maxY && 
+                    !isOverlapping(x, y, tipWidth, tipHeight)) {
+                    return { x, y };
+                }
+                
+                angle += angleStep;
+                if (angle >= Math.PI * 2) {
+                    angle = 0;
+                    radius += radiusStep;
+                }
+                attempts++;
+            }
+            
+            const gridCols = 8;
+            const gridRows = 6;
+            const cellWidth = (maxX - minX) / gridCols;
+            const cellHeight = (maxY - minY) / gridRows;
+            
+            const gridPositions = [];
+            for (let row = 0; row < gridRows; row++) {
+                for (let col = 0; col < gridCols; col++) {
+                    gridPositions.push({ row, col });
+                }
+            }
+            gridPositions.sort(() => Math.random() - 0.5);
+            
+            for (const { row, col } of gridPositions) {
+                const x = Math.floor(minX + col * cellWidth + Math.random() * cellWidth * 0.7);
+                const y = Math.floor(minY + row * cellHeight + Math.random() * cellHeight * 0.7);
+                
+                if (!isOverlapping(x, y, tipWidth, tipHeight)) {
+                    return { x, y };
+                }
+            }
+            
+            let x, y;
+            attempts = 0;
+            do {
+                x = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
+                y = Math.floor(Math.random() * (maxY - minY + 1)) + minY;
+                attempts++;
+            } while (attempts < 100 && isOverlapping(x, y, tipWidth, tipHeight));
+            
+            return { x, y };
+        }
+
+        // 爱心上升特效
+        function createHeartEffect(x, y, color) {
+            const hearts = ['❤️', '💖', '💗', '💓', '💞', '💕'];
+            const heartCount = 3 + Math.floor(Math.random() * 3);
+            
+            for (let i = 0; i < heartCount; i++) {
+                setTimeout(() => {
+                    const heart = document.createElement('div');
+                    heart.className = 'heart-trail';
+                    heart.innerHTML = hearts[Math.floor(Math.random() * hearts.length)];
+                    heart.style.left = `${x + Math.random() * 40 - 20}px`;
+                    heart.style.top = `${y}px`;
+                    heart.style.color = color;
+                    heart.style.transform = 'translateY(0) scale(1)';
+                    heart.style.opacity = '1';
+                    
+                    document.body.appendChild(heart);
+                    
+                    setTimeout(() => {
+                        heart.style.transform = `translateY(-${100 + Math.random() * 50}px) scale(${0.5 + Math.random() * 0.5})`;
+                        heart.style.opacity = '0';
+                        
+                        setTimeout(() => {
+                            if (heart.parentNode) {
+                                heart.parentNode.removeChild(heart);
+                            }
+                        }, 1500);
+                    }, 10);
+                }, i * 200);
+            }
+        }
+
+        // 弹窗生成
+        function createTipBox() {
+            if (tipElements.length >= MAX_TIP_COUNT) {
+                const oldestTip = tipElements.shift();
+                oldestTip.remove();
+            }
+
+            const tipBox = document.createElement('div');
+            tipBox.className = 'tip-box';
+            tipBox.textContent = tips[currentTipIndex];
+            const bgColor = bgColors[currentTipIndex % bgColors.length];
+            tipBox.style.backgroundColor = bgColor;
+            currentTipIndex = (currentTipIndex + 1) % tips.length;
+
+            document.body.appendChild(tipBox);
+            const tipWidth = tipBox.offsetWidth;
+            const tipHeight = tipBox.offsetHeight;
+            document.body.removeChild(tipBox);
+
+            const { x, y } = getNonOverlappingPosition(tipWidth, tipHeight);
+            tipBox.style.left = `${x}px`;
+            tipBox.style.top = `${y}px`;
+
+            // 爱心上升消失特效
+            const bottomDistance = window.innerHeight - y - tipHeight;
+            const lifetime = bottomDistance < BOTTOM_THRESHOLD ? BOTTOM_TIP_LIFETIME : TIP_LIFETIME;
+            
+            setTimeout(() => {
+                // 创建爱心特效
+                createHeartEffect(x + tipWidth / 2, y + tipHeight / 2, bgColor.replace('0.92', '1'));
+                
+                // 弹窗消失动画
+                tipBox.classList.add('heart-fade');
+                
+                setTimeout(() => {
+                    const index = tipElements.indexOf(tipBox);
+                    if (index !== -1) {
+                        tipElements.splice(index, 1);
+                        tipBox.remove();
+                    }
+                }, 1000);
+            }, lifetime);
+
+            document.body.appendChild(tipBox);
+            tipElements.push(tipBox);
+        }
+
+        // 弹窗循环
+        function loopTips() {
+            createTipBox();
+            setTimeout(loopTips, CREATE_INTERVAL);
+        }
+        loopTips();
+
+        // 关闭所有弹窗（带爱心特效）
+        function closeAllTips() {
+            tipElements.forEach(tip => {
+                const rect = tip.getBoundingClientRect();
+                const x = rect.left + rect.width / 2;
+                const y = rect.top + rect.height / 2;
+                const color = tip.style.backgroundColor.replace('0.92', '1');
+                
+                createHeartEffect(x, y, color);
+                tip.classList.add('heart-fade');
+                
+                setTimeout(() => {
+                    tip.remove();
+                }, 1000);
+            });
+            tipElements.length = 0;
+            currentTipIndex = 0;
+        }
+        document.addEventListener('keydown', (e) => e.code === 'Space' && closeAllTips());
+        document.addEventListener('click', (e) => {
+            if (e.target !== musicControl && !musicControl.contains(e.target)) closeAllTips();
+        });
+
+        // 窗口大小变化时重新布局
+        window.addEventListener('resize', () => {
+            tipElements.forEach((tip, index) => {
+                const tipWidth = tip.offsetWidth;
+                const tipHeight = tip.offsetHeight;
+                const { x, y } = getNonOverlappingPosition(tipWidth, tipHeight);
+                tip.style.left = `${x}px`;
+                tip.style.top = `${y}px`;
+            });
+        });
+    </script>
+</body>
+</html>
